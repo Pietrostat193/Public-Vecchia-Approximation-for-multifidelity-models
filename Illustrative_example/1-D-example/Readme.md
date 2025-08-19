@@ -29,7 +29,7 @@ The results will show side-by-side predictions and parameter comparisons.
 ## Plots
 The example below uses wind speed data from the Arpa Lombardia dataset. In the first figure, we compare parameters between the two models, demonstrating that, regardless of using the approximation, the estimated parameters remain consistent. The second figure shows test set predictions for both models (MF and MF with Vecchia approximation) applied to the wind speed data. The predictions are nearly identical and visually indistinguishable from each other.
 
-![Description of the image](PredictedParameterComparison.png)
-![Description of the image](PredictedHFSignalComparison.png)
+![Description of the image](PredictedParameterComparison (1).png)
+![Description of the image](PredictedHFSignalComparison (1).png)
 
 
