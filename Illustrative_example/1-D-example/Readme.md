@@ -1,7 +1,7 @@
-# Classic GP vs. Vecchia GP in 1-D
+# Classic MFGP vs. Vecchia MFGP in 1-D
 
 ## Overview
-This script demonstrates a comparison between a **classic Gaussian Process (GP)** and the **Vecchia approximation** in **one dimension**.  
+This script demonstrates a comparison between a **classic MF Gaussian Process (MFGP)** and the **Vecchia approximation** in **one dimension**.  
 In 1-D, the Vecchia method is equivalent to the classic GP, so both models produce nearly identical results.
 
 ## What the Code Does
