@@ -58,13 +58,12 @@ The workflow uses a global struct `ModelInfo` that is populated by the script an
 Correlation conditioning (“Corr”) consistently outperforms “MinMax.” In the figure, Corr reaches the exact-likelihood line around nn_size ≈ 50, whereas MinMax needs roughly nn_size ≈ 90 to achieve a comparable value.
 
 
-![Description of the image](LikelihoodDiscrepancy.png){: width="420px" }
-
+![Description of the image](LikelihoodDiscrepancy.png}
 ## Results 2
 
 The hyperparameter distance to the baseline shows the same trend: for a given neighbor size, Corr produces smaller L2 discrepancies, particularly at smaller nn_size.
 
-![Description of the image](parameters_discrepancy.png){: width="420px" }
+![Description of the image](parameters_discrepancy.png)
 
 
 ## Results 3
@@ -72,11 +71,10 @@ The hyperparameter distance to the baseline shows the same trend: for a given ne
 The prediction discrepancy (full model vs. approximation) shrinks as nn_size increases; by about nn_size ≈ 50 it becomes negligible in practice.
 
 
-![Description of the image](Prediction_discrepancy.png){: width="420px" }
+![Description of the image](Prediction_discrepancy.png)
 
 
  ```matlab
- .
 ├─ run_demo.m                          % main script
 ├─ simulate_data.m                     % data simulation
 ├─ likelihood2Dsp.m                    % likelihood of the classic spatio-temporal MF
