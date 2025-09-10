@@ -22,7 +22,7 @@ This repository contains a MATLAB script that compares an **exact baseline** mul
 - MATLAB R2020b or newer recommended
 - Optimization Toolbox (`fminunc`)
 - The following functions available on the MATLAB path:
-  - `simulate_data.m` (produces `out.LF`, `out.HF_train`, `out.HF_test`, the function can be used to generate large dataset by setting n_time,n_space, i.e. n_time=100 and n_space=10, the resulting dataset will have 10000=n_time*n_space^2  data points.)) 
+  - `simulate_data.m` (produces `out.LF`, `out.HF_train`, `out.HF_test`, the function can be used to generate large dataset by setting n_time,n_space, i.e. `n_time=100` and `n_space=10`, the resulting dataset will have 10000=n_time*n_space^2  data points.)) 
   - `likelihood2Dsp.m`, `predict2Dsp.m` (exact baseline likelihood/prediction)
   - `likelihoodVecchia_nonstat_GLS.m` (Vecchia NLML with GLS intercepts)
   - `predictVecchia_CM_calibrated2.m`
