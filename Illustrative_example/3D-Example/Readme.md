@@ -63,7 +63,7 @@ Correlation conditioning (“Corr”) consistently outperforms “MinMax.” In 
 
 The hyperparameter distance to the baseline shows the same trend: for a given neighbor size, Corr produces smaller L2 discrepancies, particularly at smaller nn_size.
 
-![Description of the image](parameter_discrepancy.png)
+![Description of the image](parameters_discrepancy.png)
 
 
 ## Results 3
