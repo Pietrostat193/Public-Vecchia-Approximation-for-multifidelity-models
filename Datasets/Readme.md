@@ -8,6 +8,6 @@ This repository contains the datasets and scripts associated with the experiment
    Dataset used in **Section 3.2 – Real Data Experiment** of the paper.  
 
 2. **SyntheticDatasetGeneration**  
-   Scripts used to generate the synthetic datasets for **Section 3.1 – Synthetic Data Experiment**.  
+   Scripts used to generate the synthetic datasets for **Section 3.1 – Synthetic Data Experiment**.  (Preprint Version, paper version is into another folder.)
 
 
