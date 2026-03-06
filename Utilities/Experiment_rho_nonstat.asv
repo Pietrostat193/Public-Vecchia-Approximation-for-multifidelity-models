@@ -1,0 +1,96 @@
+%% ------------------------------------------------------------------------
+%  SCRIPT SNELLO: SINGOLA OTTIMIZZAZIONE + RHO INTEGRATO
+%  ------------------------------------------------------------------------
+clear; clc; close all;
+
+%% 1. IMPOSTAZIONI E CARICAMENTO
+hold_id = 100; 
+capN    = 100; 
+dataFile = "C:\Users\2692812C\OneDrive - University of Glasgow\Desktop\Projects\6.VecchiaApproximation\3d_SpaceTimeVecchia\1_South_lombardy\South_Lombardy_sorted_data.mat";
+
+% Caricamento dati (usando gli helper definiti sotto)
+S = load(dataFile);
+data =S.sorted_data;
+
+% Split LOSO
+is_hold = (data.IDStation == hold_id);
+train_tbl = cap_times_per_station(data(~is_hold,:), capN, 42);
+test_tbl  = cap_times_per_station(data(is_hold,:),  capN, 42);
+
+% Setup Array
+X_L = [double(train_tbl.Time), double(train_tbl.Lat_LF), double(train_tbl.Lon_LF)];
+y_L = double(train_tbl.Wind_speed);
+X_H = [double(train_tbl.Time), double(train_tbl.Lat_HF), double(train_tbl.Lon_HF)];
+y_H = double(train_tbl.ws);
+Xstar = [double(test_tbl.Time), double(test_tbl.Lat_HF), double(test_tbl.Lon_HF)];
+y_true = double(test_tbl.ws);
+
+%% 2. SETUP MODELINFO (Senza fit esterni per rho)
+global ModelInfo
+ModelInfo = struct();
+ModelInfo.X_L = X_L; ModelInfo.y_L = y_L;
+ModelInfo.X_H = X_H; ModelInfo.y_H = y_H;
+ModelInfo.cov_type     = "RBF";
+ModelInfo.combination  = "multiplicative";
+ModelInfo.RhoFunction  = "GP_scaled_empirical"; 
+ModelInfo.nn_size      = 50;
+ModelInfo.kernel       = "RBF";
+ModelInfo.conditioning = "Corr";
+ModelInfo
+%% 3. OTTIMIZZAZIONE SINGOLA (No multistart)
+% Inizializzazione iperparametri (14 parametri per rho non stazionario)
+hyp0 = default_hyp_init("GP_scaled_empirical"); 
+
+options = optimoptions('fminunc', 'Algorithm', 'quasi-newton', 'Display', 'iter', 'MaxIterations', 60);
+
+fprintf('Avvio ottimizzazione singola...\n');
+[hyp_hat, nlml] = fminunc(@likelihoodVecchia_nonstat_GLS, hyp0, options);
+
+% Salvataggio e popolazione cache Vecchia
+ModelInfo.hyp = hyp_hat;
+[~] = likelihoodVecchia_nonstat_GLS(hyp_hat); 
+
+%% 4. PREDIZIONE CALIBRATA
+[mu_pred, s2_pred] = predict_calibratedCM3_fixed(Xstar, ModelInfo);
+
+% Risultati
+rmse = sqrt(mean((y_true - mu_pred).^2));
+z_scores = (y_true - mu_pred) ./ sqrt(s2_pred);
+coverage = mean(abs(z_scores) <= 1.96) * 100;
+
+fprintf('\n--- RISULTATI ---\n');
+fprintf('RMSE: %.4f | Coverage: %.2f%% | Std Z: %.4f\n', rmse, coverage, std(z_scores));
+
+%% ============================ FUNZIONI HELPER ============================
+function tbl = cap_times_per_station(tbl, capN, seed)
+    if isempty(capN) || capN <= 0, return; end
+    ids = unique(tbl.IDStation);
+    keep = false(height(tbl),1);
+    for i = 1:numel(ids)
+        idx = find(tbl.IDStation == ids(i));
+        if numel(idx) <= capN, keep(idx) = true; 
+        else
+            rng(seed); pick = round(linspace(1, numel(idx), capN));
+            keep(idx(pick)) = true;
+        end
+    end
+    tbl = tbl(keep,:);
+end
+
+function data = localFindDataTableInStruct(S)
+    fn = string(fieldnames(S));
+    for i = 1:numel(fn)
+        if istable(S.(fn(i))), data = S.(fn(i)); return; end
+    end
+end
+
+function hyp0 = default_hyp_init(RhoFunction)
+    n = 14; % Per GP_scaled_empirical
+    hyp0 = zeros(n,1);
+    hyp0(1:4) = log(1); % Scale/Time params
+    hyp0(5) = 0.5;      % Rho base
+    hyp0(6:7) = log(0.1); % Noise
+    % Parametri per il GP di rho (iperparametri 12-14)
+    hyp0(12) = log(0.5); % sigma rho
+    hyp0(13) = log(1.0); % lengthscale rho
+end
