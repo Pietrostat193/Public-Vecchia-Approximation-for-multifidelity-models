@@ -1,3 +1,30 @@
+# Reproducing Paper Results
+
+This guide provides the necessary scripts to reproduce the tables presented in the paper. All scripts are designed to be run within the **MATLAB** environment.
+
+## 📊 Summary Table of Scripts
+
+| Result | Script Path | Description |
+| :--- | :--- | :--- |
+| **Table 1** | `SyntheticDataExperiment/reviewer_decomp_vecchia_experiment_v3.m` | Uncertainty propopagation analysis for subcomponents. |
+| **Table 2** | `SyntheticDataExperiment/Main_syntheticDataSimulation_V4.m` | Main synthetic data simulation suite. |
+| **Table 4** | `RealDataExperiment/RealDataExperiment_main2.m` | Main experiment using real-world datasets. |
+| **Table B.2**| `Ordering Comparison/sim_vecchia_ordering_experiment_20runs.m` | Vecchia ordering experiment (20 runs). |
+
+---
+
+## 🚀 How to Run
+1. **Open MATLAB** and set the repository root as your current working directory.
+2. Ensure the `Utilities/` folder is added to your path:
+   ```matlab
+   addpath(genpath('.'));
+
+
+
+
+
+
+
 # Multi-Fidelity Gaussian Process Model with Vecchia Approximation
 
 This repository introduces a novel **multi-fidelity Gaussian process (GP) model** designed for spatio-temporal data fusion. By leveraging the **Vecchia approximation**, our approach significantly reduces computational complexity while maintaining flexibility and scalability.
