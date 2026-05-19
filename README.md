@@ -14,10 +14,10 @@ This guide provides the necessary scripts to reproduce the tables presented in t
 ---
 
 ## 🚀 How to Run
-1. **Open MATLAB** and set the repository root as your current working directory.
-2. Ensure the `Utilities/` folder is added to your path:
-   ```matlab
-   addpath(genpath('.'));
+1. **Open the repository in MATLAB**.
+2. Run the script for the result you want to reproduce directly from the editor or command window.
+
+The main reproduction scripts now add the repository folders to the MATLAB path automatically, so users do not need to manually call `addpath(genpath('.'))` first.
 
 
 

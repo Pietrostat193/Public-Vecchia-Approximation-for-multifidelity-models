@@ -1,3 +1,7 @@
+scriptDir = fileparts(mfilename('fullpath'));
+repoRoot = fileparts(scriptDir);
+addpath(genpath(repoRoot));
+
 clear; clc; rng(12345);
 
 %% Data

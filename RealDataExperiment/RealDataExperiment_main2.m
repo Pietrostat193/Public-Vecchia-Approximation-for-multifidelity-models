@@ -8,8 +8,36 @@
 global ModelInfo
 
 %% --- CONFIGURAZIONE INIZIALE ---
-capN     = 100;
-dataFile = "C:\Users\2692812C\OneDrive - University of Glasgow\Desktop\Projects\6.VecchiaApproximation\3d_SpaceTimeVecchia\1_South_lombardy\South_Lombardy_sorted_data.mat";
+capN = 100;
+
+% Resolve repository paths relative to this script so the experiment is
+% portable across machines.
+scriptDir = fileparts(mfilename('fullpath'));
+repoRoot  = fileparts(scriptDir);
+addpath(genpath(repoRoot));
+
+dataFile = fullfile(repoRoot, 'Datasets', 'South_Lombardy_sorted_data.mat');
+if exist(dataFile, 'file') ~= 2
+    error('Dataset not found at expected location: %s', dataFile);
+end
+
+% Output directory for this experiment.
+outputDir = fullfile(scriptDir, 'outputs', 'RealDataExperiment_main2');
+if exist(outputDir, 'dir') ~= 7
+    mkdir(outputDir);
+end
+
+% Warping toolbox (WMFGP) is vendored under Utilities/WMFGP and is therefore
+% already on the path through addpath(genpath(repoRoot)) above. Sanity check.
+warpAvailable = exist('KCDF_Estim','file') == 2 ...
+             && exist('Gen_Lookup','file') == 2 ...
+             && exist('Kernel_invNS','file') == 2;
+if ~warpAvailable
+    warning(['WMFGP functions (KCDF_Estim / Gen_Lookup / Kernel_invNS) ', ...
+             'were not found on the MATLAB path. Warping configurations ', ...
+             '(Const_W_RhoC, Adap_W_RhoC) will be skipped. ', ...
+             'Make sure Utilities/WMFGP/ is present in the repository.']);
+end
 
 % Load data FIRST
 S    = load(dataFile);
@@ -25,11 +53,8 @@ all_metrics744    = table();
 hasOldHistory = exist('ResultsHistory','var') == 1;
 
 % Log file
-diary('Experiment_Log.txt');
+diary(fullfile(outputDir, 'Experiment_Log.txt'));
 
-% Warping toolbox path
-addpath("C:\Users\2692812C\OneDrive - University of Glasgow\Desktop\Projects\5_Warping\WMFGP-main (1)\WMFGP-main")
-addpath("addpath 'C:\Users\2692812C\OneDrive - University of Glasgow\Desktop\New\3D-Example\3D-Example\Utilities'")
 %% --- CONFIGURAZIONI ---
 configs = {
     'Const_RhoC',   'fixed',    'constant',            false;
@@ -97,6 +122,11 @@ for s_idx = 1:length(hold_id_list)
         use_warp              = configs{c,4};
 
         fprintf('\n--- Config: %s ---\n', conf_tag);
+
+        if use_warp && ~warpAvailable
+            fprintf('Skipping %s (WMFGP toolbox not available).\n', conf_tag);
+            continue;
+        end
 
         %% Warping
         if use_warp
@@ -184,12 +214,15 @@ for s_idx = 1:length(hold_id_list)
     end
 
     %% Save after each station
-    save('Experiment_Full_Results_744.mat',...
+    save(fullfile(outputDir, 'Experiment_Full_Results_744.mat'), ...
          'ResultsHistory744','all_metrics744','-v7.3');
 end
 
+writetable(all_metrics744, fullfile(outputDir, 'all_metrics744.csv'));
+
 diary off;
-fprintf('\n>>> ESPERIMENTO COMPLETATO. Salvato in Experiment_Full_Results_744.mat\n');
+fprintf('\n>>> ESPERIMENTO COMPLETATO. Salvato in %s\n', ...
+        fullfile(outputDir, 'Experiment_Full_Results_744.mat'));
 
 %% ================= HELPER FUNCTION =================
 function idx_mat = extract_vecchia_indices(B, nn)

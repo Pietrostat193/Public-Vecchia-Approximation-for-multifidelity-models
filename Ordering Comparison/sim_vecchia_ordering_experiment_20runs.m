@@ -1,4 +1,8 @@
-function [Tall, Tmean] = experiment_20runs()
+function [Tall, Tmean] = sim_vecchia_ordering_experiment_20runs()
+
+    scriptDir = fileparts(mfilename('fullpath'));
+    repoRoot = fileparts(scriptDir);
+    addpath(genpath(repoRoot));
 
     nRuns = 20;
     Tall = table();

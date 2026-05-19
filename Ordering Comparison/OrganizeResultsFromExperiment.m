@@ -2,9 +2,13 @@
 %% ORGANIZE MONTE CARLO RESULTS
 %% ============================================================
 
-% Make sure Tall exists
+% Use Tall when available; otherwise fall back to ans from sim_vecchia_ordering_experiment_20runs().
 if ~exist('Tall','var')
-    error('Tall table not found in workspace.');
+    if exist('ans','var') && istable(ans)
+        Tall = ans;
+    else
+        error('Tall table not found in workspace, and ans is not a table.');
+    end
 end
 
 % Aggregate across runs

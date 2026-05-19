@@ -5,7 +5,13 @@
 %  3) nlml_vecchia_fullMF with Corr conditioning
 %  4) (Optional) The original likelihoodVecchia_nonstat_GLS for sanity check
 
+scriptDir = fileparts(mfilename('fullpath'));
+repoRoot = fileparts(scriptDir);
+addpath(genpath(repoRoot));
+
 clear; clc; rng(12345);
+
+[vecchiaNlmlFcn, vecchiaMethodName] = resolve_vecchia_nlml_function();
 
 %% -------------------- 0) Simulate Data --------------------
 seed = rng;
@@ -68,13 +74,13 @@ rmse_base    = sqrt(mean((p_base(:) - y_test).^2));
 
 fprintf('\nEXACT baseline computed: RMSE = %.6f\n', rmse_base);
 
-%% -------------------- 3) Comparison Loop: nlml_vecchia_fullMF --------------------
+%% -------------------- 3) Comparison Loop: Vecchia likelihood --------------------
 sizes = [10 20 40 60];
 conds = ["MinMax", "Corr"];
 RES = table();
 row = 0;
 
-fprintf('\n=== Step 2: Evaluating nlml_vecchia_fullMF at fixed hyp ===\n');
+fprintf('\n=== Step 2: Evaluating %s at fixed hyp ===\n', vecchiaMethodName);
 
 for jc = 1:numel(conds)
     ModelInfo.conditioning = conds(jc);
@@ -88,10 +94,9 @@ for jc = 1:numel(conds)
         if isfield(ModelInfo,'vecchia_idxL'), ModelInfo = rmfield(ModelInfo,'vecchia_idxL'); end
         if isfield(ModelInfo,'vecchia_idxH'), ModelInfo = rmfield(ModelInfo,'vecchia_idxH'); end
         
-        % --- RUN YOUR SPECIFIC FUNCTION ---
+        % --- RUN AVAILABLE VECCHIA LIKELIHOOD ---
         t_start = tic;
-        % We call your specific nlml_vecchia_fullMF function
-        nlml_v = nlml_vecchia_fullMF(hyp_base); 
+        nlml_v = vecchiaNlmlFcn(hyp_base);
         t_eval = toc(t_start);
         
         % --- Extract diagnostics from the call ---
@@ -114,7 +119,7 @@ for jc = 1:numel(conds)
         
         % Store Results
         row = row + 1;
-        RES.Method(row,1) = "nlml_vecchia_fullMF";
+        RES.Method(row,1) = vecchiaMethodName;
         RES.Conditioning(row,1) = conds(jc);
         RES.m(row,1) = nn;
         RES.NLML(row,1) = nlml_v;
@@ -144,4 +149,23 @@ end
 set(gca, 'YScale', 'log');
 xlabel('Neighbor size (m)'); ylabel('Rel. Error in \alpha = K^{-1}(y-m)');
 title('Linear System Error'); legend('Location','best');
+
+function [vecchiaNlmlFcn, vecchiaMethodName] = resolve_vecchia_nlml_function()
+    if exist('nlml_vecchia_fullMF', 'file') == 2
+        vecchiaNlmlFcn = @nlml_vecchia_fullMF;
+        vecchiaMethodName = "nlml_vecchia_fullMF";
+        return;
+    end
+
+    if exist('likelihoodVecchia_nonstat_GLS', 'file') == 2
+        vecchiaNlmlFcn = @likelihoodVecchia_nonstat_GLS;
+        vecchiaMethodName = "likelihoodVecchia_nonstat_GLS";
+        warning(['nlml_vecchia_fullMF was not found on the MATLAB path. ', ...
+                 'Falling back to likelihoodVecchia_nonstat_GLS.']);
+        return;
+    end
+
+    error(['No Vecchia likelihood implementation found. Expected either ', ...
+           'nlml_vecchia_fullMF or likelihoodVecchia_nonstat_GLS on the MATLAB path.']);
+end
 

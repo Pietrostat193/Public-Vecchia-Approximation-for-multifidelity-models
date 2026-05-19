@@ -11,10 +11,19 @@
 %    computed only for models that provide (mu, s2).
 %    - Classic uses predict2Dsp_GLSmean (if available) -> coverage computed
 %    - Vecchia uses predict_calibratedCM3_fixed or predictVecchia_calibratedCM3_fixed -> coverage computed
-%    - GP1/GP2/GP3: mean only here -> coverage left as NaN unless you extend train_and_predict_gpr
+%    - GP1/GP2/GP3: coverage computed from train_and_predict_gpr predictive std
 %% ============================================================
 
+scriptDir = fileparts(mfilename('fullpath'));
+repoRoot = fileparts(scriptDir);
+addpath(genpath(repoRoot));
+
 clear; clc;
+
+outputDir = fullfile(scriptDir, 'outputs', 'Main_syntheticDataSimulation_V4');
+if exist(outputDir, 'dir') ~= 7
+    mkdir(outputDir);
+end
 
 % ---------------- USER SETTINGS ----------------
 is        = 12;
@@ -145,11 +154,14 @@ for sidx = 1:numel(sigma_list)
             % 2) GP predictors (GP1/GP2/GP3) via train_and_predict_gpr
             % ============================================================
             ModelInfo2 = struct('X_L', X_L, 'y_L', y_L, 'X_H', X_H, 'y_H', y_H);
-            [Y1, ~, Y2, ~, Y3, ~] = train_and_predict_gpr(ModelInfo2);
+            [Y1, Ystd1, Y2, Ystd2, Y3, Ystd3] = train_and_predict_gpr(ModelInfo2);
 
             yhat_gp1 = Y1(out.test_row_idx);
             yhat_gp2 = Y2(out.test_row_idx);
             yhat_gp3 = Y3(out.test_row_idx);
+            s2_gp1 = Ystd1(out.test_row_idx).^2;
+            s2_gp2 = Ystd2(out.test_row_idx).^2;
+            s2_gp3 = Ystd3(out.test_row_idx).^2;
 
             if numel(yhat_gp1) ~= numel(y) || numel(yhat_gp2) ~= numel(y) || numel(yhat_gp3) ~= numel(y)
                 error('Size mismatch: GP predictions selected by out.test_row_idx do not match HF_test length.');
@@ -223,8 +235,14 @@ for sidx = 1:numel(sigma_list)
                 MAPE(r,m) = mape_fun(yhats{m}, y);
             end
 
-            % Coverage only where variance exists
-            % GP1/GP2/GP3: left NaN (no variance here)
+            % Coverage for GP baselines
+            COV90(r, modelCols=="GP1") = cov_fun(yhat_gp1, s2_gp1, y, alpha90);
+            COV95(r, modelCols=="GP1") = cov_fun(yhat_gp1, s2_gp1, y, alpha95);
+            COV90(r, modelCols=="GP2") = cov_fun(yhat_gp2, s2_gp2, y, alpha90);
+            COV95(r, modelCols=="GP2") = cov_fun(yhat_gp2, s2_gp2, y, alpha95);
+            COV90(r, modelCols=="GP3") = cov_fun(yhat_gp3, s2_gp3, y, alpha90);
+            COV95(r, modelCols=="GP3") = cov_fun(yhat_gp3, s2_gp3, y, alpha95);
+
             % Classic
             COV90(r, modelCols=="Classic") = cov_fun(mu_classic, s2_classic, y, alpha90);
             COV95(r, modelCols=="Classic") = cov_fun(mu_classic, s2_classic, y, alpha95);
@@ -282,9 +300,20 @@ end
 disp('==================== PERFORMANCE TABLE (Mean & Std Dev + Coverage) ====================');
 disp(Rows);
 
+paperTable = build_paper_table(Rows, noise_names, modelCols);
 
-save('sweep_results.mat', 'Rows', 'MAE', 'RMSE', 'MAPE', 'COV90', 'COV95', ...
-     'sigma_list', 'noise_names', 'R', 'trainFrac', 'orderingName', 'nn_use', 'is');
+resultsFile = fullfile(outputDir, 'sweep_results.mat');
+rowsFile = fullfile(outputDir, 'performance_table_long.csv');
+paperFile = fullfile(outputDir, 'table2_summary.csv');
+
+save(resultsFile, 'Rows', 'MAE', 'RMSE', 'MAPE', 'COV90', 'COV95', ...
+    'sigma_list', 'noise_names', 'R', 'trainFrac', 'orderingName', 'nn_use', 'is', 'paperTable');
+writetable(Rows, rowsFile);
+writetable(paperTable, paperFile);
+
+fprintf('Saved MAT results to: %s\n', resultsFile);
+fprintf('Saved long-form table to: %s\n', rowsFile);
+fprintf('Saved Table-2 summary to: %s\n', paperFile);
 
 %% ============================================================
 %% Local helper: apply ordering to (X,y)
@@ -316,4 +345,34 @@ function [Xo, yo] = apply_ordering(X, y, orderingName, seed)
     end
     Xo = X(p,:);
     yo = y(p,:);
+end
+
+function paperTable = build_paper_table(Rows, noiseNames, modelCols)
+    paperMetrics = ["MAE", "RMSE", "COV95"];
+    exportCols = ["GP3D", "GPL", "GP4D", "Classic", "Vecchia_v4"];
+    sourceCols = ["GP3", "GP1", "GP2", "Classic", "Vecchia_v4"];
+    paperTable = table();
+
+    for sidx = 1:numel(noiseNames)
+        noiseName = noiseNames(sidx);
+        for midx = 1:numel(paperMetrics)
+            metricName = paperMetrics(midx);
+            meanRow = Rows(Rows.NoiseLevel == noiseName & Rows.Metric == metricName & Rows.Stat == "Mean", :);
+            stdRow  = Rows(Rows.NoiseLevel == noiseName & Rows.Metric == metricName & Rows.Stat == "Std", :);
+
+            if height(meanRow) ~= 1 || height(stdRow) ~= 1
+                error('Could not build paper table for noise=%s, metric=%s.', noiseName, metricName);
+            end
+
+            row = table(noiseName, metricName, 'VariableNames', {'NoiseLevel', 'Metric'});
+            for j = 1:numel(sourceCols)
+                mu = meanRow.(sourceCols(j));
+                sigma = stdRow.(sourceCols(j));
+                row.(exportCols(j)) = string(sprintf('%.3f (%.3f)', mu, sigma));
+            end
+            row.nOK = meanRow.nOK;
+            row.nFail = meanRow.nFail;
+            paperTable = [paperTable; row]; %#ok<AGROW>
+        end
+    end
 end
