@@ -4,3 +4,5 @@
 # Stray log files from local runs (the real diary is written under outputs/)
 matlab_output.log
 RealDataExperiment/Experiment_Log.txt
+
+paper/
