@@ -14,11 +14,11 @@
 %    - GP1/GP2/GP3: coverage computed from train_and_predict_gpr predictive std
 %% ============================================================
 
+clear; clc;
+
 scriptDir = fileparts(mfilename('fullpath'));
 repoRoot = fileparts(scriptDir);
 addpath(genpath(repoRoot));
-
-clear; clc;
 
 outputDir = fullfile(scriptDir, 'outputs', 'Main_syntheticDataSimulation_V4');
 if exist(outputDir, 'dir') ~= 7

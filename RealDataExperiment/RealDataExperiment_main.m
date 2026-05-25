@@ -4,7 +4,7 @@ global ModelInfo
 
 % --- CONFIGURAZIONE INIZIALE ---
 hold_id_list = unique(S.sorted_data.IDStation); % Aggiungi qui gli ID delle stazioni
-capN         = 744;             % Cap dati per alleggerire il calcolo
+capN         = 100;             % Cap dati per alleggerire il calcolo
 dataFile     = "C:\Users\2692812C\OneDrive - University of Glasgow\Desktop\Projects\6.VecchiaApproximation\3d_SpaceTimeVecchia\1_South_lombardy\South_Lombardy_sorted_data.mat";
 hold_id_list = unique(S.sorted_data.IDStation);
 % Caricamento dati

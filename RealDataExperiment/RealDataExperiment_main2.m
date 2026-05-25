@@ -1,7 +1,7 @@
 %% MAIN EXPERIMENT: MFGP Benchmarking (Vecchia v3 + Warping + Multi-Config)
 % - Uses old ResultsHistory (if available) as warmstart
 % - No paramBank
-% - Saves into ResultsHistory744 and all_metrics744
+% - Saves into ResultsHistory100 and all_metrics100 (capN = 100)
 % - Does NOT overwrite old ResultsHistory
 
 %clear; clc;
@@ -46,8 +46,8 @@ data = S.sorted_data;
 hold_id_list = unique(data.IDStation);
 
 % ---- New output containers ----
-ResultsHistory744 = struct();
-all_metrics744    = table();
+ResultsHistory100 = struct();
+all_metrics100    = table();
 
 % Check if old ResultsHistory exists (for warmstart)
 hasOldHistory = exist('ResultsHistory','var') == 1;
@@ -201,28 +201,49 @@ for s_idx = 1:length(hold_id_list)
                 rmse, mae, picp, fval);
 
         %% ================= SAVE =================
-        ResultsHistory744.(s_name).(conf_tag).y_true = y_true;
-        ResultsHistory744.(s_name).(conf_tag).y_pred = y_pred;
-        ResultsHistory744.(s_name).(conf_tag).CI_up  = u_p;
-        ResultsHistory744.(s_name).(conf_tag).CI_low = l_p;
-        ResultsHistory744.(s_name).(conf_tag).hyp    = hyp_hat;
+        ResultsHistory100.(s_name).(conf_tag).y_true = y_true;
+        ResultsHistory100.(s_name).(conf_tag).y_pred = y_pred;
+        ResultsHistory100.(s_name).(conf_tag).CI_up  = u_p;
+        ResultsHistory100.(s_name).(conf_tag).CI_low = l_p;
+        ResultsHistory100.(s_name).(conf_tag).hyp    = hyp_hat;
 
         res_row = table(hold_id,{conf_tag},rmse,mae,cor,picp,fval,...
             'VariableNames',{'Station','Config','RMSE','MAE','Corr','PICP_95','NLML'});
 
-        all_metrics744 = [all_metrics744; res_row];
+        all_metrics100 = [all_metrics100; res_row];
     end
 
     %% Save after each station
-    save(fullfile(outputDir, 'Experiment_Full_Results_744.mat'), ...
-         'ResultsHistory744','all_metrics744','-v7.3');
+    save(fullfile(outputDir, 'Experiment_Full_Results_100.mat'), ...
+         'ResultsHistory100','all_metrics100','-v7.3');
 end
 
-writetable(all_metrics744, fullfile(outputDir, 'all_metrics744.csv'));
+writetable(all_metrics100, fullfile(outputDir, 'all_metrics100.csv'));
+
+%% ================= AGGREGATED SUMMARY (paper Table 4) =================
+% Average per-station metrics over the 18 validation stations, one row
+% per MFGP configuration. Rows are reordered to match the order used in
+% the paper.
+vars  = {'RMSE','MAE','Corr','PICP_95','NLML'};
+summary_table = groupsummary(all_metrics100, 'Config', 'mean', vars);
+
+paper_order = {'Const_RhoC','Adap_RhoC','Const_W_RhoC','Adap_W_RhoC', ...
+               'Const_RhoA','Adap_RhoA'};
+[~, idx] = ismember(paper_order, string(summary_table.Config));
+idx = idx(idx > 0);
+summary_table = summary_table(idx, :);
+
+disp('--- Aggregated MFGP results (mean over 18 stations) ---');
+disp(summary_table);
+
+writetable(summary_table, ...
+    fullfile(outputDir, 'all_metrics100_summary.csv'));
+save(fullfile(outputDir, 'Experiment_Full_Results_100.mat'), ...
+     'summary_table', '-append');
 
 diary off;
 fprintf('\n>>> ESPERIMENTO COMPLETATO. Salvato in %s\n', ...
-        fullfile(outputDir, 'Experiment_Full_Results_744.mat'));
+        fullfile(outputDir, 'Experiment_Full_Results_100.mat'));
 
 %% ================= HELPER FUNCTION =================
 function idx_mat = extract_vecchia_indices(B, nn)
