@@ -83,7 +83,7 @@ to the underlying implementation. The 1:1 mapping is:
 
 | Result | Entry-point (run this) | Underlying script |
 | :--- | :--- | :--- |
-| **Table 1** | `repro_table1.m` | `SyntheticDataExperiment/reviewer_decomp_vecchia_experiment_v3_20runs.m` (20-replication wrapper; single-run variant: `reviewer_decomp_vecchia_experiment_v3.m`) |
+| **Table 1** | `repro_table1.m` | `SyntheticDataExperiment/reviewer_decomp_vecchia_experiment_v3_20runs.m` (20-replication wrapper; single-run variant: `reviewer_decomp_vecchia_experiment_v3.m`) | 
 | **Table 2** | `repro_table2.m` | `SyntheticDataExperiment/Main_syntheticDataSimulation_V4.m` |
 | **Table 4 (MFGP rows)** | `repro_table4_MFGP.m` | `RealDataExperiment/RealDataExperiment_main2.m` |
 | **Table 4 (GP-3D row)** | `repro_table4_GP3D.m` | `RealDataExperiment/GP_realDataExperiment.m` |
