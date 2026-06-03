@@ -1,3 +1,51 @@
+# Multi-Fidelity Gaussian Process Model with Vecchia Approximation
+
+This repository accompanies the paper:
+
+ **A new framework for non-stationary
+spatio-temporal data fusion of multi-fidelity
+models**
+
+We propose a scalable multi-fidelity Gaussian process (GP) model for spatio-temporal data fusion. The method leverages a Vecchia approximation to reduce computational complexity while maintaining flexibility in modeling non-stationary relationships across fidelity levels.
+
+The key contribution is a decomposition of the multi-fidelity structure into independent components, allowing separate Vecchia approximations for the low-fidelity process and the discrepancy process. This enables scalable inference on large spatio-temporal datasets that would otherwise be computationally prohibitive under standard GP formulations.
+
+---
+
+## Key Features
+
+- Independent Vecchia approximation applied separately to fidelity components  
+- Support for non-stationary multi-fidelity integration  
+- Scalable inference for large spatio-temporal datasets  
+- Fully reproducible MATLAB pipeline for all reported results  
+
+---
+
+## Repository Structure
+
+The repository is organized as follows:
+
+- **Illustrative_example/**: Simple 1D (time) and 3D (spatio-temporal) examples demonstrating the model and comparison against the exact non-approximated GP formulation.
+
+- **SyntheticDataExperiment/**: Synthetic experiments used to generate Tables 1 and 2 of the paper. See its internal README for details.
+
+- **RealDataExperiment/**: Real-data LOSO experiments on South Lombardy weather stations used for Table 4:
+  - `RealDataExperiment_main2.m`: MFGP results  
+  - `GP_realDataExperiment.m`: GP-3D baseline  
+
+- **Ordering Comparison/**: Vecchia ordering ablation study used for Table B.2.
+
+- **Datasets/**: Pre-processed MATLAB datasets used across experiments, including the South Lombardy dataset.
+
+- **Utilities/**: Shared helper functions (kernels, likelihoods, simulators, predictors). Includes the vendored WMFGP toolbox under `Utilities/WMFGP/`.
+
+- **Computation times/**: Legacy scripts illustrating scalability differences between Vecchia and non-Vecchia methods. Included for completeness but not part of the main pipeline.
+
+- **paper/**: Placeholder for LaTeX source (maintained externally on Overleaf).
+
+---
+
+
 # Reproducing Paper Results
 
 This guide provides the necessary scripts to reproduce the tables presented in the paper. All scripts are designed to be run within the **MATLAB** environment.
@@ -82,48 +130,3 @@ needed.
 
 
 
-
-# Multi-Fidelity Gaussian Process Model with Vecchia Approximation
-
-This repository introduces a novel **multi-fidelity Gaussian process (GP) model** designed for spatio-temporal data fusion. By leveraging the **Vecchia approximation**, our approach significantly reduces computational complexity while maintaining flexibility and scalability.
-
-## Key Features
-- **Independent Vecchia Approximation**: Our framework separates the low-fidelity GP from the discrepancy process, enabling the Vecchia approximation to be applied independently to each component.
-- **Non-Stationary Integration**: The model supports non-stationary integration of different fidelity levels, a feature that is notoriously challenging in non-approximated models due to the dense matrices involved in standard computations.
-- **Scalable and Efficient**: By addressing the computational challenges of dense covariance matrices, our model offers a practical solution for large spatio-temporal datasets.
-
-##  Repository structure
-
-The repository contains illustrative examples on how to run the model and
-comparison with the non-approximated version, plus the full experimental
-pipelines used in the paper.
-
-- **Illustrative_example/**: fully working examples in 1-D (Time only) and 3-D
-  (Space-Time) of the model on simulated data, with a comparison against the
-  non-approximated version. The data-simulation routine can be tuned to
-  generate larger datasets.
-- **SyntheticDataExperiment/**: synthetic-data experiments used to produce
-  Tables 1 and 2 of the paper. See its [README](SyntheticDataExperiment/README.md).
-- **RealDataExperiment/**: real-data LOSO experiments over South Lombardy
-  weather stations used to produce Table 4 (MFGP rows via
-  `RealDataExperiment_main2.m`, GP-3D row via `GP_realDataExperiment.m`).
-  See its [README](RealDataExperiment/README.md).
-- **Ordering Comparison/**: Vecchia ordering ablation used to produce
-  Table B.2.
-- **Datasets/**: pre-processed `.mat` files used by the experiments
-  (`South_Lombardy_sorted_data.mat` for the real-data experiments) and the
-  synthetic-dataset generation scripts.
-- **Utilities/**: shared helpers (likelihoods, kernels, predictors,
-  data-simulation routines) used by all experiments. Includes the vendored
-  WMFGP toolbox under `Utilities/WMFGP/` for the warped MFGP configurations.
-- **Computation times/**: legacy computation-time figure and the script that
-  produced it, based on older functions no longer used by the main pipeline.
-  Its purpose is illustrative only — to show that the Vecchia-approximated
-  algorithm scales better than the non-approximated version as the dataset
-  grows. It is not intended as a reference benchmark, since absolute timings
-  depend heavily on the specific implementation and hardware.
-- **paper/**: placeholder folder for the LaTeX source of the paper
-  (currently maintained on Overleaf). See [paper/README.md](paper/README.md).
-
-## Current Status
-Under revision!
